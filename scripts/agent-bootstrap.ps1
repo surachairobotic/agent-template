@@ -51,12 +51,12 @@ foreach ($Dir in $Dirs) {
 # Copy agent YAMLs
 $Agents = @("pm","sa","fe","be","devops","testing","reviewer","ai")
 foreach ($Agent in $Agents) {
-    $Src = Join-Path $TemplateRoot ".opencode\agents\$Agent.yaml"
-    $Dst = Join-Path $ProjectRoot ".opencode\agents\$Agent.yaml"
+    $Src = Join-Path $TemplateRoot ".opencode\agents\$Agent.md"
+    $Dst = Join-Path $ProjectRoot ".opencode\agents\$Agent.md"
     if (Test-Path $Src) {
         if ($Force -or -not (Test-Path $Dst)) {
             Copy-Item $Src $Dst -Force
-            Write-Host "  Copied $Agent.yaml"
+            Write-Host "  Copied $Agent.md"
         }
     } else {
         Write-Warning "  Template not found: $Src"

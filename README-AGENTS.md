@@ -125,9 +125,9 @@ opencode run --agent pm
 
 ## Customization
 
-- Edit `.opencode/agents/*.yaml` to change agent prompts
+- Edit `.opencode/agents/*.md` to change agent prompts
 - Edit `.opencode/memory/project.md` to update conventions
-- Add new specialists by creating `.opencode/agents/<name>.yaml` and adding to `project.md` specialists list
+- Add new specialists by creating `.opencode/agents/<name>.md` and adding to `project.md` specialists list
 
 ## Requirements
 
