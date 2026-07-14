@@ -1,0 +1,48 @@
+# Task Tracking
+
+> Central task log for the agent team. Updated by PM and specialists.
+
+## Task Status Legend
+- 🟦 **PLANNED** - Defined, not started
+- 🟨 **IN_PROGRESS** - Actively being worked on
+- 🟩 **REVIEW** - Submitted, awaiting review
+- ✅ **DONE** - Passed review, merged
+- 🟥 **BLOCKED** - Waiting on dependency
+- ⏭️ **SKIPPED** - Deferred/cancelled
+
+## Task Table
+
+| ID | Title | Specialist | Status | Iteration | Spec | Design | Code | Tests | Review | PR | Updated |
+|----|-------|------------|--------|-----------|------|--------|------|-------|--------|----|---------|
+| FEAT-001 | {{Example: User authentication}} | PM → SA → FE/BE/Testing | 🟦 PLANNED | 0 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | - | {{DATE}} |
+| FEAT-002 | {{Example: Dashboard with charts}} | PM → SA → FE/BE/DevOps/Testing | 🟦 PLANNED | 0 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | - | {{DATE}} |
+
+## Task Detail Template
+
+### FEAT-XXX: <Title>
+**Assigned**: <specialist>
+**Started**: <date>
+**Spec**: `SPEC.md` (link or inline)
+**Design**: `DESIGN.md` (link or inline)
+**Branch**: `feat/xxx-<slug>`
+**PR**: #<number>
+
+#### Subtasks
+- [ ] SA: Architecture design
+- [ ] FE: UI components
+- [ ] BE: API endpoints
+- [ ] DevOps: CI/CD config
+- [ ] Testing: Unit/E2E tests
+- [ ] Review: Code review
+
+#### Review History
+| Iteration | Reviewer | Result | Notes |
+|-----------|----------|--------|-------|
+| 1 | Reviewer | PASS/FAIL | <feedback> |
+
+#### Blockers
+- <description> - waiting on <dependency>
+
+---
+
+*PM updates this file after each milestone. Specialists update their subtask checkboxes.*

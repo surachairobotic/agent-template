@@ -1,0 +1,62 @@
+# Feature Context
+
+> Temporary context for the current feature. Archived to `tasks.md` when complete.
+> Created by PM at feature start. Updated by all agents during execution.
+
+## Current Feature
+- **Task ID**: {{FEAT-XXX}}
+- **Title**: {{Feature title}}
+- **Status**: {{PLANNED | IN_PROGRESS | REVIEW | DONE | BLOCKED}}
+- **Started**: {{DATE}}
+- **Target Completion**: {{DATE}}
+
+## Specifications
+- **SPEC.md**: {{path or "pending"}}
+- **DESIGN.md**: {{path or "pending"}}
+- **Acceptance Criteria**:
+  1. {{Criterion 1}}
+  2. {{Criterion 2}}
+  3. {{Criterion 3}}
+
+## Active Agents
+| Agent | Role | Current Work | Last Update |
+|-------|------|--------------|-------------|
+| PM | Orchestrator | {{coordinating/delegating/waiting}} | {{DATE}} |
+| SA | Architect | {{designing/waiting}} | {{DATE}} |
+| FE | Frontend | {{implementing/testing/waiting}} | {{DATE}} |
+| BE | Backend | {{implementing/testing/waiting}} | {{DATE}} |
+| DevOps | Infra | {{configuring/waiting}} | {{DATE}} |
+| Testing | QA | {{writing tests/running/waiting}} | {{DATE}} |
+| Reviewer | Validator | {{reviewing/waiting}} | {{DATE}} |
+| AI | ML Engineer | {{training/evaluating/waiting}} | {{DATE}} |
+
+## Key Decisions (This Feature)
+| Decision | Rationale | Made By | Date |
+|----------|-----------|---------|------|
+| {{e.g., "Use JWT for auth"}} | {{Stateless, scalable}} | PM/SA | {{DATE}} |
+
+## Open Questions
+1. {{Question}} - **Blocker**: Yes/No - **Owner**: <agent>
+2. {{Question}} - **Blocker**: Yes/No - **Owner**: <agent>
+
+## Artifacts Produced
+| File | Producer | Status | Location |
+|------|----------|--------|----------|
+| SPEC.md | PM | ✅ Done | ./SPEC.md |
+| DESIGN.md | SA | 🟨 In Progress | ./DESIGN.md |
+| src/... | FE | ⬜ Pending | - |
+| tests/... | Testing | ⬜ Pending | - |
+
+## Review State
+- **Current Iteration**: {{1..N}}
+- **Max Iterations**: {{from project.md}}
+- **Last Review**: {{DATE}} - {{PASS/FAIL/PENDING}}
+- **Review Notes**: {{summary}}
+
+## Next Actions
+- [ ] {{Action}} - **Owner**: <agent> - **Due**: {{DATE}}
+- [ ] {{Action}} - **Owner**: <agent> - **Due**: {{DATE}}
+
+---
+
+*When feature reaches DONE: PM archives key info to `tasks.md`, clears this file for next feature.*

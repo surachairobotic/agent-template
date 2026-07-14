@@ -1,0 +1,49 @@
+# Architecture Decision Records (ADR)
+
+> Lightweight architectural decisions. One file per decision.
+> Format: `ADR-<number>-<short-title>.md` in this directory, or append here.
+
+## Template
+
+```markdown
+# ADR-<NNN>: <Title>
+
+**Status**: Proposed | Accepted | Superseded | Deprecated
+**Date**: YYYY-MM-DD
+**Deciders**: <names/roles>
+**Tags**: <architecture | stack | security | performance | process>
+
+## Context
+What is the issue that motivates this decision?
+
+## Decision
+What is the change we're proposing?
+
+## Consequences
+### Positive
+- 
+### Negative
+- 
+### Neutral
+- 
+
+## Alternatives Considered
+1. **<Alternative 1>** - Why rejected
+2. **<Alternative 2>** - Why rejected
+
+## Links
+- Related issues/PRs:
+- Documentation:
+```
+
+---
+
+## Decisions Log
+
+| ID | Title | Status | Date | Tags |
+|----|-------|--------|------|------|
+| 001 | {{First decision, e.g., "Use Next.js 14 App Router"}} | Accepted | {{DATE}} | stack |
+
+---
+
+*Add new ADRs above this line. Keep chronological order.*

@@ -1,0 +1,129 @@
+# Project Configuration
+
+> This file is the single source of truth for all agents. Update it when conventions change.
+> Generated during bootstrap by PM agent.
+
+## Project Identity
+- **Name**: {{PROJECT_NAME}}
+- **Description**: {{PROJECT_DESCRIPTION}}
+- **Type**: {{web-app | mobile-api | cli-tool | library | ai-service | other}}
+- **Repository**: {{GIT_REMOTE_URL}}
+
+## Stack
+- **Language**: {{TypeScript | Python | Go | Rust | C# | other}}
+- **Runtime**: {{Node.js | Bun | Deno | Python | .NET | Go | other}}
+- **Framework**: {{Next.js | React | Vue | Svelte | FastAPI | Express | Gin | other}}
+- **Build Tool**: {{Turbopack | Vite | Webpack | esbuild | Cargo | dotnet | other}}
+- **Package Manager**: {{npm | pnpm | yarn | bun | pip | poetry | cargo | nuget | other}}
+
+## Conventions
+- **Lint**: {{command}} (e.g., `npm run lint` / `ruff check .`)
+- **Format**: {{command}} (e.g., `npm run format` / `ruff format .`)
+- **Typecheck**: {{command}} (e.g., `npm run typecheck` / `mypy .`)
+- **Test:Unit**: {{command}} (e.g., `npm run test:unit` / `pytest tests/unit`)
+- **Test:E2E**: {{command}} (e.g., `npm run test:e2e` / `pytest tests/e2e`)
+- **Build**: {{command}} (e.g., `npm run build` / `cargo build --release`)
+- **Dev Server**: {{command}} (e.g., `npm run dev` / `uvicorn main:app --reload`)
+
+### Code Style
+- **Naming**: {{camelCase | snake_case | PascalCase | kebab-case}}
+- **Imports**: {{absolute | relative | path-aliases}}
+- **Components**: {{functional | class-based}}
+- **State**: {{hooks | context | redux | zustand | jotai | signals}}
+- **API**: {{REST | GraphQL | tRPC | gRPC}}
+
+### Git
+- **Commit Style**: {{conventional | angular | custom}}
+- **Branch Strategy**: {{git-flow | github-flow | trunk-based}}
+- **Hooks**: {{husky | lefthook | none}}
+
+## Validation Configuration
+
+### Local Validation (runs on host machine)
+```yaml
+validation:
+  local:
+    - name: "lint"
+      command: "{{LINT_COMMAND}}"
+      required: true
+    - name: "typecheck"
+      command: "{{TYPECHECK_COMMAND}}"
+      required: true
+    - name: "test:unit"
+      command: "{{TEST_UNIT_COMMAND}}"
+      required: true
+    - name: "test:e2e"
+      command: "{{TEST_E2E_COMMAND}}"
+      required: false
+    - name: "build"
+      command: "{{BUILD_COMMAND}}"
+      required: true
+```
+
+### Docker Validation (runs in container)
+```yaml
+  docker:
+    enabled: {{true | false}}
+    image: "{{DOCKER_IMAGE}}"
+    commands:
+      - name: "lint"
+        command: "{{DOCKER_LINT_COMMAND}}"
+      - name: "typecheck"
+        command: "{{DOCKER_TYPECHECK_COMMAND}}"
+      - name: "test"
+        command: "{{DOCKER_TEST_COMMAND}}"
+      - name: "build"
+        command: "{{DOCKER_BUILD_COMMAND}}"
+```
+
+## Review Configuration
+```yaml
+review:
+  max_iterations: 3
+  require_human_approval: true
+  auto_merge_on_pass: false
+```
+
+## Active Specialists
+```yaml
+specialists:
+  - sa    # System Analyst (always active)
+  - fe    # Frontend Engineer
+  - be    # Backend Engineer
+  - devops # DevOps Engineer
+  - testing # QA/Testing Engineer
+  - ai    # AI/ML Engineer (optional)
+  # - mobile # Mobile Engineer (optional)
+```
+
+## AI/ML Configuration (if AI specialist active)
+```yaml
+ai:
+  framework: "{{PyTorch | TensorFlow | JAX | ONNX | TensorRT | other}}"
+  task_types:
+    - "object-detection"
+    - "classification"
+    - "segmentation"
+    - "nlp"
+    - "generative"
+  infra:
+    gpu: {{true | false}}
+    gpu_type: "{{CUDA | ROCm | MPS | CPU}}"
+    training: {{local | cloud | hybrid}}
+    serving: "{{TorchServe | Triton | FastAPI | TensorFlow Serving | BentoML | other}}"
+  models_dir: "{{models/}}"
+  data_dir: "{{data/}}"
+  experiments_dir: "{{experiments/}}"
+```
+
+## Deployment
+- **Target**: {{Vercel | AWS | GCP | Azure | Kubernetes | Docker Swarm | VPS | other}}
+- **Environments**: {{development | staging | production}}
+- **IaC**: {{Terraform | Pulumi | CDK | Helm | Docker Compose | none}}
+
+## Architecture Decisions (ADR Index)
+See `decisions.md` for detailed records.
+
+---
+
+*Last updated: {{DATE}} by PM during bootstrap*
