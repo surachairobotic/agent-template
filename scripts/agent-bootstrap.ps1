@@ -37,6 +37,7 @@ $Dirs = @(
     ".agent-comms\inbox\reviewer",
     ".agent-comms\inbox\ai",
     ".agent-comms\outbox",
+    ".agent-comms\state",
     "scripts"
 )
 
@@ -91,6 +92,19 @@ foreach ($Script in $Scripts) {
         if ($Force -or -not (Test-Path $Dst)) {
             Copy-Item $Src $Dst -Force
             Write-Host "  Copied $Script"
+        }
+    }
+}
+
+# Copy orchestrator (Python scheduler) + sample DAG
+$OrchestratorFiles = @("orchestrator.py", "orchestrator.json")
+foreach ($File in $OrchestratorFiles) {
+    $Src = Join-Path $TemplateRoot $File
+    $Dst = Join-Path $ProjectRoot $File
+    if (Test-Path $Src) {
+        if ($Force -or -not (Test-Path $Dst)) {
+            Copy-Item $Src $Dst -Force
+            Write-Host "  Copied $File"
         }
     }
 }
@@ -167,7 +181,7 @@ if (Test-Path $ReadmeSrc) {
 
 # Initial commit
 Write-Host "`nCreating initial commit..." -ForegroundColor Cyan
-git add .opencode/ scripts/ .gitignore README-AGENTS.md 2>$null
+git add .opencode/ scripts/ .gitignore README-AGENTS.md orchestrator.py orchestrator.json 2>$null
 git commit -m "chore: bootstrap agent team" --no-verify 2>$null
 if ($LASTEXITCODE -eq 0) {
     Write-Host "  Initial commit created"
@@ -178,6 +192,8 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host "`nBootstrap complete!" -ForegroundColor Green
 Write-Host "`nNext steps:" -ForegroundColor Cyan
 Write-Host "  1. cd $ProjectRoot"
-Write-Host "  2. opencode run --agent pm"
-Write-Host "  3. PM will guide you through project setup"
+Write-Host "  2. Edit orchestrator.json to define your feature DAG"
+Write-Host "  3. python orchestrator.py        # run the agent orchestrator"
+Write-Host "     python orchestrator.py --once # single pass"
+Write-Host "  4. Watch progress in STATUS.md"
 Write-Host ""

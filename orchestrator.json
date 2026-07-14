@@ -1,0 +1,41 @@
+{
+  "feature": "Sample Feature (replace with your own DAG)",
+  "tasks": [
+    {
+      "id": "T01", "owner": "pm", "title": "SPEC.md",
+      "status": "pending", "depends_on": [],
+      "deliverable": "SPEC.md",
+      "details": "Create or confirm SPEC.md with goals, scope, and acceptance criteria. Then write STATUS.md human summary."
+    },
+    {
+      "id": "T02", "owner": "sa", "title": "DESIGN.md",
+      "status": "pending", "depends_on": ["T01"],
+      "deliverable": "DESIGN.md",
+      "details": "Write DESIGN.md from SPEC.md: architecture, data models, API contracts, component breakdown."
+    },
+    {
+      "id": "T03", "owner": "fe", "title": "Frontend slice",
+      "status": "pending", "depends_on": ["T02"],
+      "deliverable": "src/feature.tsx",
+      "details": "Implement the frontend per DESIGN.md."
+    },
+    {
+      "id": "T04", "owner": "be", "title": "Backend slice",
+      "status": "pending", "depends_on": ["T02"],
+      "deliverable": "src/server.ts",
+      "details": "Implement the backend per DESIGN.md."
+    },
+    {
+      "id": "T05", "owner": "testing", "title": "Tests",
+      "status": "pending", "depends_on": ["T03", "T04"],
+      "deliverable": "src/feature.test.ts",
+      "details": "Write unit + integration tests."
+    },
+    {
+      "id": "T06", "owner": "reviewer", "title": "Review",
+      "status": "pending", "depends_on": ["T05"],
+      "deliverable": "REVIEW.md",
+      "details": "Run lint/typecheck/test/build and LLM review vs SPEC/DESIGN. Write REVIEW.md."
+    }
+  ]
+}

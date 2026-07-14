@@ -1,6 +1,6 @@
 # OpenCode Agent Team
 
-> A multi-agent development team that runs inside OpenCode. PM orchestrates, specialists implement, reviewer validates.
+> A multi-agent development team that runs inside OpenCode. A Python **orchestrator** activates each role's agent according to a task DAG. Every role owns a `state.json` and reports progress with status flags.
 
 ## Quick Start
 
@@ -12,85 +12,116 @@ cd .\my-project\
 # 2. Bootstrap (creates project.md, git, etc.)
 .\scripts\agent-bootstrap.ps1
 
-# 3. Start PM agent
-opencode run --agent pm
+# 3. Define the feature DAG in orchestrator.json (SPEC/DESIGN/tasks)
+#    Then run the orchestrator (it activates agents on a timer):
+python orchestrator.py
+#   or a single scheduling pass then exit:
+python orchestrator.py --once
 ```
+
+## Architecture
+
+```
+                 orchestrator.py  (Python timer loop + thread pool)
+                          |
+          reads/writes .agent-comms/state/<role>.json  (per-role tasks + flags)
+                          |
+        spawns opencode run --agent <role>  (up to MAX_CONCURRENCY in parallel)
+                          |
+        +---------+--------+--------+---------+----------+----------+
+        |         |        |        |         |          |          |
+       pm        sa       fe       be     devops    testing      reviewer   (ai)
+        |         |        |        |         |          |          |
+     SPEC.md  DESIGN.md  UI    APIs/DB   Docker/CI   tests     REVIEW.md
+                          |
+                    STATUS.md  (human-readable progress board, regenerated every tick)
+```
+
+- **Each role has its own `state.json`** with that role's tasks and a status flag.
+- **Status vocabulary:** `pending` · `ready` · `processing` · `done` · `blocker` · `revision`.
+- A task becomes `ready` (actionable) only when all its `depends_on` are `done`.
+- The orchestrator auto-detects `done` when the task's `deliverable` file exists on disk.
+- **PM additionally writes `STATUS.md`** for human viewing.
 
 ## Agent Roles
 
-| Agent | Role | When Active |
-|-------|------|-------------|
-| **PM** | Project Manager / Orchestrator | Always - main interface |
-| **SA** | System Analyst / Architect | After SPEC approved |
-| **FE** | Frontend Engineer | After DESIGN ready |
-| **BE** | Backend Engineer | After DESIGN ready |
-| **DevOps** | Infrastructure / CI/CD | After DESIGN ready |
-| **Testing** | QA / Test Engineer | After DESIGN ready |
-| **AI** | ML Engineer (CV, NLP, etc.) | If AI tasks in project |
+| Agent | Role | Activated when |
+|-------|------|----------------|
+| **PM** | Project Manager / Planner | First - writes SPEC.md + STATUS.md |
+| **SA** | System Analyst / Architect | After SPEC.md ready |
+| **FE** | Frontend Engineer | After DESIGN.md ready |
+| **BE** | Backend Engineer | After DESIGN.md ready |
+| **DevOps** | Infrastructure / CI/CD | After DESIGN.md ready |
+| **Testing** | QA / Test Engineer | After DESIGN.md ready |
+| **AI** | ML Engineer (CV, NLP, etc.) | If AI tasks in DAG |
 | **Reviewer** | Code Reviewer / Validator | After specialists complete |
 
-## Workflow
+All agents are `mode: primary` so the orchestrator can run them directly with
+`opencode run --agent <role> --auto -m opencode/nemotron-3-ultra-free`.
 
-```
-You <-> PM: Chat, clarify, approve SPEC
-         |
-         v
-      SPEC.md (you approve)
-         |
-         v
-      PM delegates:
-      SA -> DESIGN.md
-      FE/BE/DevOps/Testing/AI -> parallel implementation
-         |
-         v
-      Reviewer validates (lint, typecheck, test, build + LLM review)
-         |
-         v
-      PASS -> PM presents to you
-      FAIL -> Specialist revises (max 3x)
-         |
-         v
-      You accept / request changes -> loop
-```
+## How an agent works (state-driven)
 
-## Memory System (`.opencode/memory/`)
+When the orchestrator activates a role, that agent:
+1. Reads `.agent-comms/state/<role>.json`.
+2. For each task whose `status` is `pending`/`ready` and whose `depends_on` are all `done`:
+   a. Sets `status` = `processing`, `updated_at` = now. Saves the JSON.
+   b. Does the work described in `details` (reads SPEC.md / DESIGN.md / project.md).
+   c. On success sets `status` = `done` with a short `notes` summary, or `blocker` if stuck.
+3. Exits when no actionable task remains. PM also writes `STATUS.md`.
 
-| File | Purpose | Updated By |
-|------|---------|------------|
-| `project.md` | Stack, conventions, validation rules, active specialists | PM (bootstrap), all agents |
-| `decisions.md` | Architecture Decision Records (ADR) | PM, SA |
-| `tasks.md` | Task tracking table | PM, all agents |
-| `context.md` | Current feature context | PM, all agents |
+If an agent is interrupted mid-`processing`, the orchestrator re-activates the
+role on the next tick (resume) instead of leaving it stuck.
 
-## Communication (`.agent-comms/`)
+## The DAG (`orchestrator.json`)
 
-```
-inbox/pm/       <- Messages for PM
-inbox/sa/       <- Messages for SA
-inbox/fe/       <- Messages for FE
-inbox/be/       <- Messages for BE
-inbox/devops/   <- Messages for DevOps
-inbox/testing/  <- Messages for Testing
-inbox/reviewer/ <- Messages for Reviewer
-inbox/ai/       <- Messages for AI
-outbox/         <- Completed work notifications
+Tasks are defined in `orchestrator.json` at the project root:
+
+```json
+{
+  "feature": "Kiosk Feature",
+  "tasks": [
+    {"id":"T01","owner":"pm","title":"SPEC.md","status":"pending","depends_on":[],
+     "deliverable":"SPEC.md","details":"Write SPEC.md ..."},
+    {"id":"T02","owner":"sa","title":"DESIGN.md","status":"pending","depends_on":["T01"],
+     "deliverable":"DESIGN.md","details":"Write DESIGN.md from SPEC.md ..."}
+  ]
+}
 ```
 
-Messages are JSON files. Use helper scripts:
-```powershell
-# Send task to agent
-.\scripts\agent-send.ps1 -To fe -TaskId FEAT-001 -Type DELEGATE -Payload '{"spec_path":"SPEC.md","design_path":"DESIGN.md"}'
+The orchestrator loads this on start and seeds each role's `state.json`
+(preserving any status/notes already on disk).
 
-# Read agent inbox
-.\scripts\agent-receive.ps1 -Agent fe
+## Tuning (`orchestrator.py` constants)
 
-# Show task status
-.\scripts\agent-status.ps1
+| Constant | Default | Meaning |
+|----------|---------|---------|
+| `POLL_INTERVAL` | `5` | Seconds between scheduler ticks |
+| `MAX_CONCURRENCY` | `2` | Max simultaneous opencode agent processes |
+| `STALE_TIMEOUT` | `600` | Seconds before a stuck `processing` task is marked `blocker` |
+| `MODEL` | `opencode/nemotron-3-ultra-free` | Model forced on every spawned agent |
+
+## Communication
+
+State lives in `.agent-comms/state/<role>.json` (machine-readable, one per role).
+For humans, the orchestrator regenerates `STATUS.md` every tick:
+
 ```
+# Agent Status
+Updated: 2026-07-14T20:31:05
+| ID | Task | Owner | Status | Deliverable | Notes |
+|----|------|-------|--------|-------------|-------|
+| T01 | SPEC.md | pm | done | SPEC.md | |
+| T02 | DESIGN.md | sa | done | DESIGN.md | |
+...
+```
+
+> Legacy `.agent-comms/inbox`/`outbox` JSON messaging and the `agent-send.ps1` /
+> `agent-receive.ps1` / `agent-status.ps1` helpers are retained for reference but
+> are not used by the orchestrator.
 
 ## Bootstrap (First Run in New Project)
 
-PM will ask:
+PM (when activated with no `project.md`) asks:
 1. Project name, description, type
 2. Language, framework, build tool, package manager
 3. Lint / Format / Typecheck / Test / Build commands
@@ -99,39 +130,41 @@ PM will ask:
 6. Validation: local commands + Docker (optional)
 7. Review: max iterations, human approval required?
 8. Active specialists (SA always, others optional)
-8. AI config (if AI active): framework, task types, GPU, serving
-9. Deployment target, environments, IaC tool
-10. Analyze existing codebase? (infers conventions)
+9. AI config (if AI active): framework, task types, GPU, serving
+10. Deployment target, environments, IaC tool
+11. Analyze existing codebase? (infers conventions)
 
 ## Feature Work
 
 ```powershell
-opencode run --agent pm
-# You: "Add user authentication with JWT"
-# PM: asks clarifying questions -> writes SPEC.md
-# You: "APPROVE"
-# PM: delegates -> specialists work -> reviewer validates -> PM presents
-# You: "looks good" or "change X"
+python orchestrator.py
+# Orchestrator: seeds state.json -> activates pm (SPEC.md)
+#   -> activates sa (DESIGN.md) -> activates fe/be/devops/testing in parallel
+#   -> activates reviewer (REVIEW.md) -> exits when all done/blocker
+# Watch progress in STATUS.md.
 ```
 
 ## Commands Reference
 
-| Script | Purpose |
-|--------|---------|
-| `agent-bootstrap.ps1` | Initialize project from template |
-| `agent-send.ps1` | Send message to agent inbox |
-| `agent-receive.ps1` | Read/clear agent inbox |
-| `agent-status.ps1` | Show task status from tasks.md |
+| Script / Command | Purpose |
+|------------------|---------|
+| `python orchestrator.py` | Run the agent orchestrator (timer loop) |
+| `python orchestrator.py --once` | Single scheduling pass, then wait for agents and exit |
+| `orchestrator.json` | Task DAG consumed by the orchestrator |
+| `agent-bootstrap.ps1` | Initialize a new project from this template |
+| `agent-send.ps1` / `agent-receive.ps1` / `agent-status.ps1` | Legacy inbox helpers (reference only) |
 
 ## Customization
 
-- Edit `.opencode/agents/*.md` to change agent prompts
-- Edit `.opencode/memory/project.md` to update conventions
-- Add new specialists by creating `.opencode/agents/<name>.md` and adding to `project.md` specialists list
+- Edit `.opencode/agents/*.md` to change agent prompts.
+- Edit `orchestrator.json` to change the task DAG.
+- Edit `orchestrator.py` constants to tune concurrency / timing / model.
+- Add new specialists by creating `.opencode/agents/<name>.md` (set `mode: primary`)
+  and adding tasks owned by that role to `orchestrator.json`.
 
 ## Requirements
 
-- OpenCode CLI
+- OpenCode CLI (on PATH, e.g. `opencode.cmd`)
+- Python 3.10+
 - Git
-- PowerShell 5.1+ (Windows) / PowerShell 7+ (cross-platform)
 - Project-specific tools (Node, Python, Docker, etc. per project.md)
